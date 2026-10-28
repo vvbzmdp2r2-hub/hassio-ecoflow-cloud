@@ -158,6 +158,14 @@ class BaseDevice(ABC):
             return False
         return True
 
+    def update_peer_data(self, raw_data: bytes, source: BaseDevice) -> bool:
+        """Opt-in for serial-addressed telemetry from another configured device.
+
+        Called only for that device's live data topic in the same MQTT client.
+        Commands, replies and unknown topics never enter this path.
+        """
+        return False
+
     def _prepare_data_data_topic(self, raw_data: bytes) -> PreparedData:
         data = self._prepare_data(raw_data)
         return PreparedData(None, data, data)

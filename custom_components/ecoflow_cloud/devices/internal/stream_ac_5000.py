@@ -40,11 +40,11 @@ from homeassistant.util import utcnow
 from custom_components.ecoflow_cloud.api import EcoflowApiClient
 from custom_components.ecoflow_cloud.api.message import Message, PrivateAPIMessageProtocol
 from custom_components.ecoflow_cloud.binary_sensor import MiscBinarySensorEntity
-from custom_components.ecoflow_cloud.devices import BaseInternalDevice, const
+from custom_components.ecoflow_cloud.devices import BaseDevice, BaseInternalDevice, const
+from custom_components.ecoflow_cloud.devices.data_holder import PreparedData
 from custom_components.ecoflow_cloud.devices.internal.proto import stream_ac_5000_pb2, stream_ac_pb2
 from custom_components.ecoflow_cloud.number import ChargingPowerEntity, MaxBatteryLevelEntity, MinBatteryLevelEntity
 from custom_components.ecoflow_cloud.select import PowerDictSelectEntity
-from custom_components.ecoflow_cloud.switch import EnabledEntity
 from custom_components.ecoflow_cloud.sensor import (
     CumulativeCapacitySensorEntity,
     EnergySensorEntity,
@@ -58,6 +58,7 @@ from custom_components.ecoflow_cloud.sensor import (
     VoltSensorEntity,
     WattsSensorEntity,
 )
+from custom_components.ecoflow_cloud.switch import EnabledEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -232,6 +233,40 @@ def _iter_packets(payload: bytes) -> Iterator[Any]:
 
 
 class StreamAC5000(BaseInternalDevice):
+    @override
+    def update_peer_data(self, raw_data: bytes, source: BaseDevice) -> bool:
+        """Accept only this unit's tagged runtime entries from a STREAM peer.
+
+        A master's untagged meter, configuration, BMS and pack data cannot be
+        attributed to another unit. Do not run the full decoder on its behalf.
+        Receipt time is HA reception, not proof of a new physical measurement.
+        """
+        if not isinstance(source, StreamAC5000) or source is self:
+            return False
+        params: dict[str, Any] = {}
+        wanted = self.device_info.sn.strip().upper()
+        for header in _iter_packets(raw_data):
+            if header.cmd_func != 254 or header.cmd_id != _CMD_ID_RUNTIME:
+                continue
+            try:
+                runtime = stream_ac_5000_pb2.StreamAC5000Runtime()
+                runtime.ParseFromString(header.pdata)
+            except Exception:
+                _LOGGER.debug("Ignoring malformed STREAM peer runtime frame")
+                continue
+            stats = [entry for entry in runtime.statPack.stat if entry.sn.strip().upper() == wanted]
+            powers = [entry for entry in runtime.powerPack.power if entry.sn.strip().upper() == wanted]
+            # Duplicate identities inside a frame are ambiguous, not a fallback.
+            if len(stats) == 1:
+                self._copy(stats[0], params, "soc")
+            if len(powers) == 1:
+                self._decode_unit_power(powers[0], params)
+        if not params:
+            return False
+        data = {"params": params, "timestamp": utcnow()}
+        self.data.add_data(PreparedData(None, data, data))
+        return True
+
     def _has_pv_inputs(self) -> bool:
         sn = self.device_info.sn.strip().upper()
         return self.device_data.device_type in _PV_DEVICE_TYPES or sn.startswith(_PV_SN_PREFIX)
