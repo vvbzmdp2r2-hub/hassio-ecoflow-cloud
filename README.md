@@ -1,29 +1,31 @@
 # EcoFlow Cloud Integration for Home Assistant
-[![GitHub release](https://img.shields.io/github/release/TelosNox/hassio-ecoflow-cloud?include_prereleases=&sort=semver&color=blue)](https://github.com/TelosNox/hassio-ecoflow-cloud/releases/)
-[![issues - hassio-ecoflow-cloud](https://img.shields.io/github/issues/TelosNox/hassio-ecoflow-cloud)](https://github.com/TelosNox/hassio-ecoflow-cloud/issues)
-[![GH-code-size](https://img.shields.io/github/languages/code-size/TelosNox/hassio-ecoflow-cloud?color=red)](https://github.com/TelosNox/hassio-ecoflow-cloud)
-[![GH-last-commit](https://img.shields.io/github/last-commit/TelosNox/hassio-ecoflow-cloud?style=flat-square)](https://github.com/TelosNox/hassio-ecoflow-cloud/commits/main)
+[![GitHub release](https://img.shields.io/github/release/vvbzmdp2r2-hub/hassio-ecoflow-cloud?include_prereleases=&sort=semver&color=blue)](https://github.com/vvbzmdp2r2-hub/hassio-ecoflow-cloud/releases/)
+[![issues - hassio-ecoflow-cloud](https://img.shields.io/github/issues/vvbzmdp2r2-hub/hassio-ecoflow-cloud)](https://github.com/vvbzmdp2r2-hub/hassio-ecoflow-cloud/issues)
+[![GH-code-size](https://img.shields.io/github/languages/code-size/vvbzmdp2r2-hub/hassio-ecoflow-cloud?color=red)](https://github.com/vvbzmdp2r2-hub/hassio-ecoflow-cloud)
+[![GH-last-commit](https://img.shields.io/github/last-commit/vvbzmdp2r2-hub/hassio-ecoflow-cloud?style=flat-square)](https://github.com/vvbzmdp2r2-hub/hassio-ecoflow-cloud/commits/main)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
-[![Tests](https://github.com/TelosNox/hassio-ecoflow-cloud/actions/workflows/tests.yaml/badge.svg)](https://github.com/TelosNox/hassio-ecoflow-cloud/actions/workflows/tests.yaml)
-[![HACS validation](https://github.com/TelosNox/hassio-ecoflow-cloud/actions/workflows/validate.yml/badge.svg)](https://github.com/TelosNox/hassio-ecoflow-cloud/actions/workflows/validate.yml)
+[![Tests](https://github.com/vvbzmdp2r2-hub/hassio-ecoflow-cloud/actions/workflows/tests.yaml/badge.svg)](https://github.com/vvbzmdp2r2-hub/hassio-ecoflow-cloud/actions/workflows/tests.yaml)
+[![HACS validation](https://github.com/vvbzmdp2r2-hub/hassio-ecoflow-cloud/actions/workflows/validate.yml/badge.svg)](https://github.com/vvbzmdp2r2-hub/hassio-ecoflow-cloud/actions/workflows/validate.yml)
 
 Inspired by [hassio-ecoflow](https://github.com/vwt12eh8/hassio-ecoflow) and [ecoflow-mqtt-prometheus-exporter](https://github.com/berezhinskiy/ecoflow-mqtt-prometheus-exporter) this integration uses EcoFlow MQTT Broker `mqtt.ecoflow.com` to monitor and control the device.
 
 ## About this fork
 
-This is a maintained fork of [tolwi/hassio-ecoflow-cloud](https://github.com/tolwi/hassio-ecoflow-cloud). It collects fixes and device support that are waiting upstream, for example STREAM telemetry stalls, STREAM system commands, set-command replies, Smart Meter values and STREAM 5000 support. What changed in each version is in the [release notes](https://github.com/TelosNox/hassio-ecoflow-cloud/releases).
+This fork derives from [TelosNox/hassio-ecoflow-cloud](https://github.com/TelosNox/hassio-ecoflow-cloud), based on [tolwi/hassio-ecoflow-cloud](https://github.com/tolwi/hassio-ecoflow-cloud). Existing copyright and license notices are retained.
 
-- **Drop-in replacement:** the domain stays `ecoflow_cloud` and every entity keeps its unique_id, so switching from upstream keeps your entities, automations and history. Remove the upstream repository from HACS, add this one, install and restart. Your config entries stay as they are.
-- **Requires Home Assistant 2025.11 or newer.**
-- **Experimental:** STREAM 5000 / STREAM AC 5000 (only with `private_api`). Known issue: [#6](https://github.com/TelosNox/hassio-ecoflow-cloud/issues/6).
-- Please report problems with this version [here](https://github.com/TelosNox/hassio-ecoflow-cloud/issues), not upstream. Include the API mode, device model and a diagnostic download.
+- **1.7.3rc1 is a release candidate.** It fixes serial-addressed STREAM 5000 peer telemetry forwarded by the master. Physical validation of this fork is pending.
+- Domain `ecoflow_cloud`, config-entry schema and entity unique-ID generation are unchanged. Preserve the existing integration entry; do not delete and recreate it. Verify registry identity and history after migration.
+- The HACS minimum version is inherited; validation used Home Assistant 2026.10.4. Older versions are not newly certified.
+- STREAM 5000 remains experimental with `private_api`. Historical issue: [TelosNox #6](https://github.com/TelosNox/hassio-ecoflow-cloud/issues/6).
+- Other device support is retained but not newly validated. Gateway support is not promised.
+- Report problems in [this fork](https://github.com/vvbzmdp2r2-hub/hassio-ecoflow-cloud/issues). Sanitize credentials, serial numbers and personal telemetry before sharing diagnostics.
 
 ## Installation
 
 ### HACS installation
 The quickest way to install this integration is via [HACS](https://github.com/hacs/integration) by clicking the button below:
 
-[![Add to HACS via My Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=TelosNox&repository=hassio-ecoflow-cloud&category=Integration)
+[![Add to HACS via My Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=vvbzmdp2r2-hub&repository=hassio-ecoflow-cloud&category=Integration)
 
 1. Click above to install as a custom repository via HACS
 2. Restart Home Assistant
@@ -35,7 +37,7 @@ EcoFlow strictly separates accounts by region. If you encounter the error `Accou
 - **Europe:** `api-e.ecoflow.com`
 
 ### Manual installation options
-- Install as a [custom repository](https://github.com/TelosNox/hassio-ecoflow-cloud) via [HACS](https://github.com/hacs/integration)
+- Install as a [custom repository](https://github.com/vvbzmdp2r2-hub/hassio-ecoflow-cloud) via [HACS](https://github.com/hacs/integration)
 - Manually download and extract to the custom_components directory
 
 Restart Home Assistant. Once restart is done, use `Add Integration` → `EcoflowCloud`.

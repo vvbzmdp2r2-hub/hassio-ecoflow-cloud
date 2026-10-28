@@ -172,9 +172,16 @@ class EcoflowMQTTClient:
     @callback
     def _on_message(self, client, userdata, message: MQTTMessage):
         try:
+            # Restrict peer routing to a known live telemetry topic in this entry.
+            # Retained messages must not make another device look freshly received.
+            source = None if getattr(message, "retain", False) else next(
+                (d for d in self.__devices.values() if message.topic == d.device_info.data_topic), None
+            )
             for sn, device in self.__devices.items():
                 if device.update_data(message.payload, message.topic):
                     _LOGGER.debug(f"Message for {sn} and Topic {message.topic} : {message.payload.hex()}")
+                elif source is not None and device is not source:
+                    device.update_peer_data(message.payload, source)
         except UnicodeDecodeError as error:
             _LOGGER.error(f"UnicodeDecodeError: {error}. Ignoring message and waiting for the next one.")
         except Exception:
